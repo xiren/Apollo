@@ -17,9 +17,9 @@ import scala.collection.mutable.ListBuffer
   */
 object XueqiuConnector {
 
-  val STOCK_URL: String = "http://xueqiu.com/stock/forchartk/stocklist.json?symbol=%s&period=1day&type=normal&begin=%S&end=%s"
+  val STOCK_URL: String = "https://xueqiu.com/stock/forchartk/stocklist.json?symbol=%s&period=1day&type=normal&begin=%S&end=%s"
 
-  val LOGIN_URL: String = "http://xueqiu.com/"
+  val LOGIN_URL: String = "https://xueqiu.com/"
 
   val START_TIME = Date.from(LocalDate.of(1990, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
 

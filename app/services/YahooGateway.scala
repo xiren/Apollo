@@ -8,7 +8,7 @@ import scala.io.Source
   * Created by kwang3 on 2016/6/21.
   */
 @Singleton
-object YahooConnector {
+object YahooGateway {
 
   val URL: String = "http://table.finance.yahoo.com/table.csv?s=%s.%s"
 

@@ -15,16 +15,16 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by kwang3 on 2016/6/22.
   */
-object XueqiuConnector {
+object XueqiuGateway {
 
-  val STOCK_URL: String = "https://xueqiu.com/stock/forchartk/stocklist.json?symbol=%s&period=1day&type=normal&begin=%S&end=%s"
+  val STOCK_URL: String = "https://xueqiu.com/stock/forchartk/stocklist.json?symbol=%s&period=1day&type=before&begin=%S&end=%s"
 
   val LOGIN_URL: String = "https://xueqiu.com/"
 
-  val START_TIME = Date.from(LocalDate.of(1990, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
-
+//  val START_TIME = Date.from(LocalDate.of(1990, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
+  val START_TIME = Date.from(LocalDate.now().minusYears(1).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
   val END_TIME = {
-    if (LocalDateTime.now().getHour() > 6) {
+    if (LocalDateTime.now().getHour() > 15) {
       Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
     }else {
       Date.from(LocalDate.now().minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
@@ -57,7 +57,7 @@ object XueqiuConnector {
       val macd = getValue(c, "macd")
       val timeTmp = getValue(c, "time")
       val time = timeTmp.substring(1, timeTmp.length - 1)
-      listBuffer += (Array(time, open, high, low, close, volume, chg, percent, turnrate, ma5, ma10, ma20, ma30, dif, dea, macd))
+      listBuffer += Array(time, open, high, low, close, volume, chg, percent, turnrate, ma5, ma10, ma20, ma30, dif, dea, macd)
     }
     listBuffer.toList
   }
@@ -87,7 +87,7 @@ object XueqiuConnector {
   }
 
   def main(args: Array[String]) {
-    println(send("SZ002204"))
+    send("SZ000651").foreach(args => println(args.mkString(",")))
   }
 
 }

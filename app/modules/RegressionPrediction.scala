@@ -10,11 +10,13 @@ object RegressionPrediction {
 
   implicit val regressionPredictionWrites: Writes[RegressionPrediction] = (
     (JsPath \ "rmse").write[Double] and
+      (JsPath \ "chain").write[Double] and
       (JsPath \ "result").write[Double]
     ) (unlift(RegressionPrediction.unapply))
 }
 
-case class RegressionPrediction(a: Double, r: Double) {
+case class RegressionPrediction(a: Double, c: Double, r: Double) {
   val rmse = a
+  val chain = c
   val result = r
 }

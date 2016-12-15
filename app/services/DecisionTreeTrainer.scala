@@ -19,7 +19,7 @@ import org.apache.spark.rdd.RDD
 trait Trainer {
   def classifierTrain(trainingData: List[Array[String]], destinationData: Array[Double]): ClassifierPrediction
 
-  def trainRegression(trainingData: List[Array[String]], destinationData: Array[Double], close: Double): RegressionPrediction
+  def trainRegression(trainingData: List[Array[String]], destinationData: Array[Double], chainData: Double, close: Double): RegressionPrediction
 }
 
 @Singleton
@@ -38,14 +38,15 @@ class DecisionTreeTrainer @Inject()(sc: SingletonSparkContext) extends Trainer {
     new ClassifierPrediction(dtTotalCorrect / scaledData.count(), dtModel.predict(Vectors.dense(destinationData)))
   }
 
-  override def trainRegression(trainingData: List[Array[String]], destinationData: Array[Double], close: Double): RegressionPrediction = {
+  override def trainRegression(trainingData: List[Array[String]], destinationData: Array[Double], chainData: Double, close: Double): RegressionPrediction = {
     val data = toRDD(trainingData)
     val scaledData = scaledFeature(data)
     val dtModel = DecisionTree.trainRegressor(scaledData, Map[Int, Int](), "variance", 20, 32);
     val predictionRating = scaledData.map(r => (r.label, dtModel.predict(r.features)))
     val rmse = math.sqrt(predictionRating.map(r => (r._1 - r._2) * (r._1 - r._2)).reduce(_ + _) / scaledData.count())
-    val chain = dtModel.predict(Vectors.dense(destinationData))
-    val result = close / (1 - chain)
+    val gradient = dtModel.predict(Vectors.dense(destinationData))
+    val chain = chainData * (1 + gradient)
+    val result = close * (1 + chain)
     new RegressionPrediction(rmse, chain, result)
   }
 

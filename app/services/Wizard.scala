@@ -29,17 +29,12 @@ class Wizard @Inject()(trainer: DecisionTreeTrainer) {
       val todayClose = r(0)
       if ((step + index) < cleanData.size) {
         val targetClose = cleanData(step + index)(0)
-        var swing = 0
-        if ((targetClose.toString.toDouble - todayClose.toString.toDouble) > 0) {
-          swing = 1
-        } else {
-          swing = 0
-        }
+        val swing = if ((targetClose.toString.toDouble - todayClose.toString.toDouble) > 0) 1 else 0
         trainingData += Array(swing.toString, r(1).toString, r(2).toString, r(3).toString, r(4).toString, r(5).toString)
       }
       index += step
     }
-    val destinationData = Array( last(1).toString.toDouble, last(2).toString.toDouble, last(4).toString.toDouble, last(4).toString.toDouble, last(5).toString.toDouble)
+    val destinationData = Array(last(1).toString.toDouble, last(2).toString.toDouble, last(4).toString.toDouble, last(4).toString.toDouble, last(5).toString.toDouble)
     trainer.classifierTrain(trainingData.toList, destinationData)
   }
 
@@ -77,7 +72,7 @@ class Wizard @Inject()(trainer: DecisionTreeTrainer) {
     trainingData.toList
   }
 
-  private def gradient(records: List[Array[String]]):List[Array[String]] = {
+  private def gradient(records: List[Array[String]]): List[Array[String]] = {
     var index = 0;
     val trainingData: ListBuffer[Array[String]] = new ListBuffer()
     for (r <- records) {

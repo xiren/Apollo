@@ -1,44 +1,51 @@
 package services
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
 import modules.{ClassifierPrediction, Eidolon, RegressionPrediction}
 
 import scala.collection.mutable.ListBuffer
 
-/**
-  * Created by kwang3 on 2016/6/21.
-  */
+
 class Wizard @Inject()(trainer: DecisionTreeTrainer) {
 
-  def conjure(symbol: String, step: Int): Eidolon = {
+  def conjure(symbol: String): Eidolon = {
+    println("symbol"+symbol)
     val records = XueqiuGateway.send(symbol)
-    val last = records.last
-    val lastDate = last(0).toString
-    val classifierPrediction = classifier(records, step)
-    val regressionPrediction = regression(records, step)
-    new Eidolon(lastDate, regressionPrediction, classifierPrediction)
+    if (!records.isEmpty) {
+      val last = records.last
+      val lastDate = last(0).toString.split(" ")
+      val localDate = LocalDate.parse(lastDate(1) + lastDate(2) + lastDate(5), DateTimeFormatter.ofPattern("MMMdduuuu", Locale.ENGLISH))
+      val classifierPrediction = classifier(records)
+      val regressionPrediction = regression(records)
+      new Eidolon(localDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")), regressionPrediction, classifierPrediction)
+    }else{
+      new Eidolon(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")), null, null)
+    }
   }
 
-  private def classifier(records: List[Array[Any]], step: Int): ClassifierPrediction = {
+  private def classifier(records: List[Array[Any]]): ClassifierPrediction = {
     val cleanData = cleanRecords(records)
     val last = cleanData.last
     var index = 0
     val trainingData: ListBuffer[Array[String]] = new ListBuffer()
     for (r <- cleanData) {
       val todayClose = r(0)
-      if ((step + index) < cleanData.size) {
-        val targetClose = cleanData(step + index)(0)
+      if ((1 + index) < cleanData.size) {
+        val targetClose = cleanData(1 + index)(0)
         val swing = if ((targetClose.toString.toDouble - todayClose.toString.toDouble) > 0) 1 else 0
         trainingData += Array(swing.toString, r(1).toString, r(2).toString, r(3).toString, r(4).toString, r(5).toString)
       }
-      index += step
+      index += 1
     }
     val destinationData = Array(last(1).toString.toDouble, last(2).toString.toDouble, last(4).toString.toDouble, last(4).toString.toDouble, last(5).toString.toDouble)
     trainer.classifierTrain(trainingData.toList, destinationData)
   }
 
-  private def regression(records: List[Array[Any]], step: Int): RegressionPrediction = {
+  private def regression(records: List[Array[Any]]): RegressionPrediction = {
     val chainData = chainByStep(records)
     val trainingData = gradient(chainData)
     val last = trainingData.last;

@@ -2,10 +2,11 @@ package services
 
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.URL
-import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime, ZoneId}
 import java.util.Date
 
+import entity.StockEntity
+import org.json4s.DefaultReaders.StringReader
 import org.json4s._
 import org.json4s.jackson._
 
@@ -21,12 +22,13 @@ object XueqiuGateway {
 
   val LOGIN_URL: String = "https://xueqiu.com/"
 
-//  val START_TIME = Date.from(LocalDate.of(1990, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
-  val START_TIME = Date.from(LocalDate.now().minusYears(1).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
+  val STOCK_LIST: String = "https://xueqiu.com/stock/cata/stocklist.json?page=%s&size=%s&order=desc&orderby=percent&type=11,12&_=%s";
+
+  val START_TIME = Date.from(LocalDate.now().minusYears(5).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
   val END_TIME = {
-    if (LocalDateTime.now().getHour() > 15) {
+    if (LocalDateTime.now().getHour() >= 15) {
       Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
-    }else {
+    } else {
       Date.from(LocalDate.now().minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
     }
   }
@@ -55,15 +57,14 @@ object XueqiuGateway {
       val dif = getValue(c, "dif")
       val dea = getValue(c, "dea")
       val macd = getValue(c, "macd")
-      val timeTmp = getValue(c, "time")
-      val time = timeTmp.substring(1, timeTmp.length - 1)
+      val time = getValue(c, "time")
       listBuffer += Array(time, open, high, low, close, volume, chg, percent, turnrate, ma5, ma10, ma20, ma30, dif, dea, macd)
     }
     listBuffer.toList
   }
 
   private def getValue(n: JValue, s: String): String = {
-    JsonMethods.compact(JsonMethods.render(n \ s))
+    JsonMethods.fromJValue(JsonMethods.render(n \ s))(StringReader)
   }
 
 
@@ -86,8 +87,42 @@ object XueqiuGateway {
     map.map(r => r._1 + "=" + r._2).mkString("; ")
   }
 
-  def main(args: Array[String]) {
-    send("SZ000651").foreach(args => println(args.mkString(",")))
+  def main(args: Array[String]): Unit = {
+
+    val list = send("SZ399902")
+    list.foreach(i => {
+      println(i(0)+ "," +i(1))
+    })
+  }
+
+  private def getStockListCount(): Int = {
+    val url = new URL(STOCK_LIST.format(1, 10, (new Date).getTime()))
+    val conn = url.openConnection();
+    conn.setRequestProperty("Cookie", getCookie())
+    val br = new BufferedReader(new InputStreamReader(conn.getInputStream))
+    val count = getValue(JsonMethods.parse(br.readLine()) \ "count", "count")
+    count.toInt
+  }
+
+  val SIZE: Int = 90;
+
+  def getStockList(): List[StockEntity] = {
+    var listBuffer = List[StockEntity]()
+    val count = getStockListCount();
+    for (i <- (1 to count / SIZE + 1)) {
+      listBuffer = listBuffer ::: getStockList(i, SIZE)
+    }
+    listBuffer
+  }
+
+  def getStockList(page: Int, size: Int): List[StockEntity] = {
+    printf("get stock list, page:%s, size:%s\n", page, size);
+    val url = new URL(STOCK_LIST.format(page, size, (new Date).getTime()))
+    val conn = url.openConnection();
+    conn.setRequestProperty("Cookie", getCookie())
+    val br = new BufferedReader(new InputStreamReader(conn.getInputStream));
+    val stocks = JsonMethods.parse(br.readLine()) \\ "stocks"
+    stocks.children.map(r => new StockEntity(getValue(r, "symbol"), getValue(r, "name")))
   }
 
 }

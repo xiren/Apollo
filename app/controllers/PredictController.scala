@@ -11,8 +11,8 @@ import services.Wizard
   */
 class PredictController @Inject()(wizard: Wizard) extends Controller {
 
-  def predict(symbol: String, step: Int) = Action {
-    val eidolon = wizard.conjure(symbol, step)
+  def predict(symbol: String) = Action {
+    val eidolon = wizard.conjure(symbol)
     Ok(Json.toJson(eidolon))
   }
 

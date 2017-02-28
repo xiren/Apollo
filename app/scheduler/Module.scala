@@ -1,8 +1,7 @@
-package modules
+package scheduler
 
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
-import services.SchedulerJob
 
 
 class Module extends AbstractModule{

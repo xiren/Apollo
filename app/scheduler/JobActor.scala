@@ -1,4 +1,4 @@
-package modules
+package scheduler
 
 import akka.actor.Actor
 import play.api.libs.json.Json

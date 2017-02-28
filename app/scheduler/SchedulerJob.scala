@@ -1,9 +1,9 @@
-package services
+package scheduler
 
 import javax.inject.Inject
 
 import akka.actor.{ActorSystem, Cancellable, Props}
-import modules.JobActor
+import services.Wizard
 
 import scala.concurrent.duration._
 

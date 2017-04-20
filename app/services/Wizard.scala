@@ -13,7 +13,6 @@ import scala.collection.mutable.ListBuffer
 class Wizard @Inject()(trainer: DecisionTreeTrainer) {
 
   def conjure(symbol: String): Eidolon = {
-    println("symbol"+symbol)
     val records = XueqiuGateway.send(symbol)
     if (!records.isEmpty) {
       val last = records.last
@@ -22,7 +21,7 @@ class Wizard @Inject()(trainer: DecisionTreeTrainer) {
       val classifierPrediction = classifier(records)
       val regressionPrediction = regression(records)
       new Eidolon(localDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")), regressionPrediction, classifierPrediction)
-    }else{
+    } else {
       new Eidolon(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")), null, null)
     }
   }

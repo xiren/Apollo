@@ -16,12 +16,6 @@ import org.apache.spark.rdd.RDD
   * Created by kwang3 on 2016/6/21.
   */
 
-trait Trainer {
-  def classifierTrain(trainingData: List[Array[String]], destinationData: Array[Double]): ClassifierPrediction
-
-  def trainRegression(trainingData: List[Array[String]], destinationData: Array[Double], chainData: Double, close: Double): RegressionPrediction
-}
-
 @Singleton
 class DecisionTreeTrainer @Inject()(sc: SingletonSparkContext) extends Trainer {
 
@@ -45,8 +39,8 @@ class DecisionTreeTrainer @Inject()(sc: SingletonSparkContext) extends Trainer {
     val predictionRating = scaledData.map(r => (r.label, dtModel.predict(r.features)))
     val rmse = math.sqrt(predictionRating.map(r => (r._1 - r._2) * (r._1 - r._2)).reduce(_ + _) / scaledData.count())
     val gradient = dtModel.predict(Vectors.dense(destinationData))
-    val chain = chainData * (1 + gradient)
-    val result = close * (1 + chain)
+    val chain = chainData / (1 - gradient)
+    val result = close * (1 + chain / 100)
     new RegressionPrediction(rmse, chain, result)
   }
 

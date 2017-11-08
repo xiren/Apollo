@@ -24,7 +24,7 @@ object XueqiuGateway {
 
   val STOCK_LIST: String = "https://xueqiu.com/stock/cata/stocklist.json?page=%s&size=%s&order=desc&orderby=percent&type=11,12&_=%s";
 
-  val START_TIME = Date.from(LocalDate.now().minusYears(5).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
+  val START_TIME = Date.from(LocalDate.now().minusYears(20).atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
   val END_TIME = {
     if (LocalDateTime.now().getHour() >= 15) {
       Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant).getTime
@@ -89,7 +89,7 @@ object XueqiuGateway {
 
   def main(args: Array[String]): Unit = {
 
-    val list = send("SZ399902")
+    val list = send("SH000001")
     list.foreach(i => {
       println(i(0)+ "," +i(1))
     })
